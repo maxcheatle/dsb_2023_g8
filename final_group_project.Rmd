@@ -537,6 +537,7 @@ knn_wflow <-
 You may want to compare the time it takes to fit each model. `tic()` starts a simple timer and `toc()` stops it
 
 ```{r, fit_models}
+#Logistic regression
 tic()
 log_res <- log_wflow %>% 
   fit_resamples(
@@ -548,7 +549,89 @@ log_res <- log_wflow %>%
 time <- toc()
 log_time <- time[[4]]
 
+# Show average performance over all folds (note that we use log_res):
+log_res %>%  collect_metrics(summarize = TRUE)
+```
 
+```{r}
+#Decision Tree results
+
+tic()
+tree_res <-
+  tree_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, 
+      accuracy, kap,
+      roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)
+    ) 
+time <- toc()
+log_time <- time[[4]]
+
+tree_res %>%  collect_metrics(summarize = TRUE)
+```
+
+```{r}
+#Random Forest
+
+tic()
+rf_res <-
+  rf_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, 
+      accuracy, kap,
+      roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)
+    ) 
+time <- toc()
+log_time <- time[[4]]
+
+rf_res %>%  collect_metrics(summarize = TRUE)
+
+```
+
+```{r}
+#Boosted tree - XGBoost
+
+tic()
+xgb_res <- 
+  xgb_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, 
+      accuracy, kap,
+      roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)
+    ) 
+time <- toc()
+log_time <- time[[4]]
+
+xgb_res %>% collect_metrics(summarize = TRUE)
+```
+
+```{r}
+#K-nearest neighbour
+
+tic()
+knn_res <- 
+  knn_wflow %>% 
+  fit_resamples(
+    resamples = cv_folds, 
+    metrics = metric_set(
+      recall, precision, f_meas, 
+      accuracy, kap,
+      roc_auc, sens, spec),
+    control = control_resamples(save_pred = TRUE)
+    )
+time <- toc()
+log_time <- time[[4]]
+
+knn_res %>% collect_metrics(summarize = TRUE)
 ```
 
 ## Compare models
