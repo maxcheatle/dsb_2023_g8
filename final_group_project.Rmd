@@ -195,6 +195,16 @@ card_fraud_times %>%
 
 ```
 
+-   Fraud as a percentage of total transactions:
+
+    -   January and February are the most common months for fraud, with over 0.75% of transactions being fraudulent
+
+        -   In terms of seasonality, it would appear that fraud is more frequent in the winter months, excluding December which is the lowest month for fraud all year
+
+    -   Fraud is most common at the end of the working week (Wed, Thur, Fri), and lowest over the weekends
+
+    -   By a significant margin, fraud is most common between 10pm and 3am (overnight)
+
 ```{r}
 
 # Let's find the percentage of fraudulent transactions by victim age 
@@ -238,6 +248,8 @@ card_fraud %>%
   labs(title = "Distance of transaction from card holder's home", subtitle = "Split by legitimate and fraudulent transactions", x = NULL, y = "Distance (km)", fill = NULL) +
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
 ```
+
+-   Distance seemingly has almost no effect on fraudulent transactions, as the violin plot shows the distribution of transaction distances are nearly identical for the respective types of activity
 
 ```{r}
 
