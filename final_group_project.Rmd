@@ -143,24 +143,106 @@ We have plenty of geospatial data as lat/long pairs, so I want to convert city/s
 
 ```{r}
 
-#| label: convert-strings-to-factors
+# Let's find out which days, months, and hours experience the most prevelant fraud
+
+card_fraud_times <- card_fraud %>% 
+  mutate(
+    date_only = lubridate::date(trans_date_trans_time),
+    month_name = lubridate::month(trans_date_trans_time, label=TRUE),
+    hour = lubridate::hour(trans_date_trans_time),
+    weekday = lubridate::wday(trans_date_trans_time, label = TRUE)
+  ) %>% 
+  
+  # Let's reduce our selection to only the columns of interest for clarity
+  select(date_only, month_name, hour, weekday, is_fraud) 
+
+# Now let's group by months, and find out which are the worst for fraud
+
+card_fraud_times %>% 
+  group_by(month_name) %>% 
+  
+  # Here I summarise to find the number of transactions in each month, the number of fraudulent transactions, and the subsequent percentage
+  summarise(total_trans = n(), fraud_trans = sum(is_fraud == 1), pct_fraud = round(fraud_trans/total_trans*100,2)) %>% 
+  
+  # Now I'm going to plot for clarity, it will also help see if there is any seasonality
+  ggplot(aes(x = month_name, y = pct_fraud)) +
+  geom_bar(stat = "identity") +
+  
+  # Now aesthetics
+  ggthemes::theme_stata() +
+  labs(title = "Percentage of transactions flagged as fraudulent per month", y = "% Fraud", x = "Month")
+
+# Repeating for days instead of months
+
+card_fraud_times %>% 
+  group_by(weekday) %>% 
+  summarise(total_trans = n(), fraud_trans = sum(is_fraud == 1), pct_fraud = round(fraud_trans/total_trans*100,2)) %>% 
+  ggplot() +
+  geom_bar(aes(x = weekday, y = pct_fraud), stat = "identity") +
+  ggthemes::theme_stata() +
+  labs(title = "Percentage of transactions flagged as fraudulent per day", y = "% Fraud", x = "Day")
+
+# Repeating for hours instead of days
+
+card_fraud_times %>% 
+  group_by(hour) %>% 
+  summarise(total_trans = n(), fraud_trans = sum(is_fraud == 1), pct_fraud = round(fraud_trans/total_trans*100,2)) %>% 
+  ggplot(aes(x = hour, y = pct_fraud)) +
+  geom_bar(stat = "identity") +
+  ggthemes::theme_stata() +
+  labs(title = "Percentage of transactions flagged as fraudulent by hour", y = "% Fraud", x = "Hour")
+
+```
+
+```{r}
+
+# Let's find the percentage of fraudulent transactions by victim age 
+
+card_fraud %>% 
+  mutate(
+    age = round(interval(dob, trans_date_trans_time) / years(1), 0)
+  ) %>% 
+  group_by(age) %>% 
+  summarise(total_trans = n(), fraud_trans = sum(is_fraud == 1), pct_fraud = round(fraud_trans/total_trans*100,2)) %>% 
+  
+  # Here, we change our y value
+  ggplot(aes(x=age,y=pct_fraud)) +
+  geom_point() +
+  
+  # Aesthetics
+  ggthemes::theme_stata() +
+  labs(title = "Percentage of fraudulent transactions by account holder age", x = "Age", y = "% Fraud")
+
+```
+
+```{r}
+
+card_fraud %>% 
+  
+  # Changing fraud values 0,1 to more readable names
+  mutate(is_fraud = case_when(
+    is_fraud == 1 ~ "Fraud",
+    is_fraud == 0 ~ "Legitimate"
+  )) %>% 
+  
+  # Now plotting a violin plot, faceted by legitimate and fraudulent transactions
+  ggplot(aes(x = is_fraud, y = distance_km, fill = is_fraud)) +
+  geom_violin() +
+  
+  # Faceting with scales = "free_x" to remove redundant x_axis space
+  facet_wrap(~ is_fraud, scales = "free_x") +
+  
+  # Aesthetic modifications
+  ggthemes::theme_stata() +
+  labs(title = "Distance of transaction from card holder's home", subtitle = "Split by legitimate and fraudulent transactions", x = NULL, y = "Distance (km)", fill = NULL) +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+```
+
+```{r}
 
 card_fraud <- card_fraud %>% 
   mutate(category = factor(category),
          job = factor(job))
-
-# Visualize the distribution of the new time variables
-ggplot(card_fraud, aes(x = hour)) +
-  geom_histogram(binwidth = 1) +
-  theme_minimal() +
-  labs(title = "Distribution of transaction hour")
-
-# Visualize the distribution of the distance
-ggplot(card_fraud, aes(x = distance_km)) +
-  geom_histogram() +
-  theme_minimal() +
-  labs(title = "Distribution of transaction distance (km)")
-
 
 ```
 
@@ -211,7 +293,6 @@ The predictors `category` and `job` are transformed into factors.
 
 `category` has 14 unique values, and `job` has 494 unique values. The dataset is quite large, with over 670K records, so these variables don't have an excessive number of levels at first glance. However, it is worth seeing if we can compact the levels to a smaller number.
 
-
 ### Why do we care about the number of categories and whether they are "excessive"?
 
 Consider the extreme case where a dataset had categories that only contained one record each. There is simply insufficient data to make correct predictions using category as a predictor on new data with that category label. Additionally, if your modeling uses dummy variables, having an extremely large number of categories will lead to the production of a huge number of predictors, which can slow down the fitting. This is fine if all the predictors are useful, but if they aren't useful (as in the case of having only one record for a category), trimming them will improve the speed and quality of the data fitting.
@@ -231,12 +312,7 @@ card_fraud$job_category <- ifelse(card_fraud$job %in% top_jobs, as.character(car
 
 table(card_fraud$job_category)
 
-
-
-
-
 ```
-
 
 ## Do all variables have sensible types?
 
@@ -261,7 +337,6 @@ card_fraud <- select(card_fraud, -c(lat1_radians, lat2_radians, long1_radians, l
 
 
 ```
-
 
 ## Which variables to keep in your model?
 
