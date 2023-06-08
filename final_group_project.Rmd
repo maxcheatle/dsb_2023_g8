@@ -33,22 +33,15 @@ library(ggthemes)
 
 # The problem: predicting credit card fraud
 
-The goal of the project is to predict fraudulent credit card transactions.
-
-We will be using a dataset with credit card transactions containing legitimate and fraud transactions. Fraud is typically well below 1% of all transactions, so a naive model that predicts that all transactions are legitimate and not fraudulent would have an accuracy of well over 99%-- pretty good, no?
-
-You can read more on credit card fraud on [Credit Card Fraud Detection Using Weighted Support Vector Machine](https://www.scirp.org/journal/paperinformation.aspx?paperid=105944)
+This project's primary goal is to predict fraudulent credit card transactions. The dataset comprises credit card transactions, both legitimate and fraudulent. Given the extremely low proportion of fraudulent transactions, a naive model that predicts all transactions as legitimate would achieve over 99% accuracy. However, such a model would fail to capture the critical nuances necessary for predicting fraudulent activities. 
 
 The dataset we will use consists of credit card transactions and it includes information about each transaction including customer details, the merchant and category of purchase, and whether or not the transaction was a fraud.
 
 ## Obtain the data
 
-The dataset is too large to be hosted on Canvas or Github, so please download it from dropbox <https://www.dropbox.com/sh/q1yk8mmnbbrzavl/AAAxzRtIhag9Nc_hODafGV2ka?dl=0> and save it in your `dsb` repo, under the `data` folder.
+This code begins by loading the dataset, which cannot be hosted on standard platforms due to its size. Thus, it is made available through Dropbox. After loading the dataset, the outcome variable is_fraud is converted to a factor or categorical variable, and the level is set such that '1' (indicating fraud) is the first level. This is important in tidymodels as the first level is considered the event of interest.
 
-As we will be building a classifier model using tidymodels, there's two things we need to do:
 
-1.  Define the outcome variable `is_fraud` as a factor, or categorical, variable, instead of the numerical 0-1 varaibles.
-2.  In tidymodels, the first level is the event of interest. If we leave our data as is, `0` is the first level, but we want to find out when we actually did (`1`) have a fraudulent transaction
 
 ```{r}
 #| echo: false
@@ -89,6 +82,8 @@ The data dictionary is as follows
 
 We also add some of the variables we considered in our EDA for this dataset during homework 2.
 
+This section further refines the dataset. It adds variables such as hour, wday, month_name, and age based on trans_date_trans_time and dob. It also renames trans_year to year. Additionally, it converts latitude/longitude to radians and calculates the transaction's distance in miles and kilometers from the location of the purchase.
+
 ```{r}
 card_fraud <- card_fraud %>% 
   mutate( hour = hour(trans_date_trans_time),
@@ -118,17 +113,11 @@ card_fraud <- card_fraud %>%
 
 ## Exploratory Data Analysis (EDA)
 
-You have done some EDA and you can pool together your group's expertise in which variables to use as features. You can reuse your EDA from earlier, but we expect at least a few visualisations and/or tables to explore the dataset and identify any useful features.
+The EDA process is vital to understand the dataset and identify useful features. This phase includes both visual and tabular exploration of the dataset. The dataset comprises various types of variables such as strings, geospatial data, dates, date/times, and numerical data. These different types of data require unique processing and transformation.
 
-Group all variables by type and examine each variable class by class. The dataset has the following types of variables:
+For instance, strings are converted to factors or dropped, and geospatial data is calculated based on city/state data. The code uses various methods such as visualizing the distribution of transactions by month, day, and hour to analyze patterns of fraudulent transactions. The EDA process also investigates how fraud varies with the account holder's age and the transaction's distance from the cardholder's home.
 
-1.  Strings
-2.  Geospatial Data
-3.  Dates
-4.  Date/Times
-5.  Numerical
-
-Strings are usually not a useful format for classification problems. The strings should be converted to factors, dropped, or otherwise transformed.
+By understanding these patterns and incorporating them into the model, it's more likely to accurately identify fraudulent transactions, making this EDA process vital to the model's success.
 
 ***Strings to Factors***
 
@@ -251,6 +240,9 @@ card_fraud %>%
 
 -   Distance seemingly has almost no effect on fraudulent transactions, as the violin plot shows the distribution of transaction distances are nearly identical for the respective types of activity
 
+Finally, the data is transformed to be used in the model. The categorical variables category and job are transformed into factor variables to be used in the model.
+
+
 ```{r}
 
 card_fraud <- card_fraud %>% 
@@ -259,9 +251,14 @@ card_fraud <- card_fraud %>%
 
 ```
 
+In summary, this script takes a comprehensive approach to preparing and analyzing the dataset for modeling credit card fraud. The methods used should provide an effective foundation for creating a predictive model. The model's success will heavily depend on the feature selection based on the insights drawn from the EDA process.
+
+
 ## Exploring factors: how is the compactness of categories?
 
 -   Do we have excessive number of categories? Do we want to combine some?
+
+In the first chunk of code, we aim to understand the distribution of the category and job variables in our dataset. Our goal is to assess if we have an excessive number of categories that might be worth merging.
 
 ```{r}
 
@@ -299,15 +296,17 @@ card_fraud %>%
 
 ```
 
-The predictors `category` and `job` are transformed into factors.
 
-`category` has 14 unique values, and `job` has 494 unique values. The dataset is quite large, with over 670K records, so these variables don't have an excessive number of levels at first glance. However, it is worth seeing if we can compact the levels to a smaller number.
 
 ### Why do we care about the number of categories and whether they are "excessive"?
 
-Consider the extreme case where a dataset had categories that only contained one record each. There is simply insufficient data to make correct predictions using category as a predictor on new data with that category label. Additionally, if your modeling uses dummy variables, having an extremely large number of categories will lead to the production of a huge number of predictors, which can slow down the fitting. This is fine if all the predictors are useful, but if they aren't useful (as in the case of having only one record for a category), trimming them will improve the speed and quality of the data fitting.
+In the first plot, we count the frequency of each category, sort them, and calculate the percentage of each category. The bar plot visualizes these percentages, which can help us understand the distribution and relative significance of each category.
 
-If I had subject matter expertise, I could manually combine categories. If you don't have subject matter expertise, or if performing this task would be too labor intensive, then you can use cutoffs based on the amount of data in a category. If the majority of the data exists in only a few categories, then it might be reasonable to keep those categories and lump everything else in an "other" category or perhaps even drop the data points in smaller categories.
+We follow a similar approach to evaluate the job variable.
+
+The category has 14 unique values, and job has 494 unique values. With over 670K records in our dataset, these variables don't seem to have an excessive number of levels. Still, we should check if we can compact the levels for efficiency.
+
+The number of categories in a variable is crucial as it can significantly impact the speed and quality of model fitting. For instance, if categories only contained a single record, there would be insufficient data to make accurate predictions for new data with that category label. If modeling uses dummy variables, a large number of categories can produce an overwhelming number of predictors, slowing down the fitting.
 
 ```{r}
 #Although we attempted to categorise the jobs into different industries, this requires far too much manual labour and also we do not possess enough subject matter expertise to categorise them ourselves.
@@ -324,9 +323,12 @@ table(card_fraud$job_category)
 
 ```
 
+The code above simplifies the job category by only retaining the top 50 jobs, replacing the rest with 'Other'. This approach mitigates the overhead of handling a vast number of categories.
+
 ## Do all variables have sensible types?
 
-Consider each variable and decide whether to keep, transform, or drop it. This is a mixture of Exploratory Data Analysis and Feature Engineering, but it's helpful to do some simple feature engineering as you explore the data. In this project, we have all data to begin with, so any transformations will be performed on the entire dataset. Ideally, do the transformations as a `recipe_step()` in the tidymodels framework. Then the transformations would be applied to any data the recipe was used on as part of the modeling workflow. There is less chance of data leakage or missing a step when you perform the feature engineering in the recipe.
+The next code chunk focuses on ensuring that all variables have appropriate data types and formats.
+
 
 ```{r}
 
@@ -348,9 +350,14 @@ card_fraud <- select(card_fraud, -c(lat1_radians, lat2_radians, long1_radians, l
 
 ```
 
+First, we create a new age variable by calculating the difference between the current year and the year of birth (dob). We then remove the dob column as it's redundant now. We also convert the city and state variables into factors because they are categorical variables.
+
+The distance_miles column is dropped in favor of distance_km to avoid redundancy, and we also drop the latitude and longitude variables represented in radians as they may not provide additional value given the distance variable.
+
 ## Which variables to keep in your model?
 
-You have a number of variables and you have to decide which ones to use in your model. For instance, you have the latitude/lognitude of the customer, that of the merchant, the same data in radians, as well as the `distance_km` and `distance_miles`. Do you need them all?
+When creating predictive models, it's critical to choose relevant variables.
+
 
 ```{r}
 
@@ -363,11 +370,11 @@ card_fraud_ml <- card_fraud[, necessary_columns]
 
 ```
 
+We define a vector of necessary columns that are deemed relevant to predicting fraud and create a new dataset, card_fraud_ml, with only these columns. This process is an essential part of feature selection and can significantly impact the performance of the machine learning models.
+
 ## Fit your workflows in smaller sample
 
-You will be running a series of different models, along the lines of the California housing example we have seen in class. However, this dataset has 670K rows and if you try various models and run cross validation on them, your computer may slow down or crash.
-
-Thus, we will work with a smaller sample of 10% of the values the original dataset to identify the best model, and once we have the best model we can use the full dataset to train- test our best model.
+Firstly, a smaller subset of the original dataset is selected to facilitate a more efficient model selection process, as trying multiple models and cross-validating on a large dataset can be computationally intensive and time-consuming. A sample size of 10% of the original dataset has been chosen for this purpose.
 
 ```{r}
 # select a smaller subset
@@ -377,6 +384,10 @@ my_card_fraud <- card_fraud_ml %>%
 ```
 
 ## Split the data in training - testing
+
+Next, the data is divided into training and testing sets, with 80% of the data assigned to the training set and the remaining 20% to the test set. This approach is standard in machine learning, as it allows us to train the models on a large portion of the data and evaluate their performance on unseen data (the test set).
+
+
 
 ```{r}
 # **Split the data**
@@ -393,7 +404,8 @@ card_fraud_test <- testing(data_split)
 
 ## Cross Validation
 
-Start with 3 CV folds to quickly get an estimate for the best model and you can increase the number of folds to 5 or 10 later.
+A three-fold cross-validation strategy is employed for model selection. In this process, the training set is divided into three parts or "folds". The model is trained on two of these folds and tested on the third. This process is repeated three times, with each fold serving as the test set once. This strategy gives a more reliable estimate of the model's performance.
+
 
 ```{r}
 set.seed(123)
@@ -405,7 +417,12 @@ cv_folds
 
 ## Define a tidymodels `recipe`
 
-What steps are you going to add to your recipe? Do you need to do any log transformations?
+Following this, a tidymodels recipe is defined for preprocessing the data. This recipe contains the steps necessary to prepare the data for machine learning. These steps include:
+
+Replacing new levels in nominal variables with the most frequent level (step_novel).
+Converting all nominal (categorical) variables to binary dummy variables (step_dummy). This is necessary because many machine learning algorithms cannot handle categorical data directly.
+Removing variables that have zero variance, i.e., the ones that have the same value in every observation (step_zv).
+Normalizing all numeric variables to have mean zero and standard deviation one (step_normalize). This is done to ensure that all features have the same scale.
 
 ```{r, define_recipe}
 
@@ -434,7 +451,8 @@ glimpse(prepped_data)
 
 ## Define various models
 
-You should define the following classification models:
+Next, five different machine learning models are defined. These models include a logistic regression model, a decision tree, a random forest, a boosted tree using Extreme Gradient Boosting, and a k-nearest neighbors model. These models are chosen because they represent a diverse set of approaches and are widely used for classification tasks.
+
 
 1.  Logistic regression, using the `glm` engine
 2.  Decision tree, using the `C5.0` engine
@@ -492,6 +510,10 @@ knn_spec <-
 
 ## Bundle recipe and model with `workflows`
 
+Following the model definitions, each model is incorporated into a workflow along with the defined recipe. A workflow in tidymodels is a convenient way to bundle together preprocessing steps (recipe) and a model.
+
+
+
 ```{r, define_workflows}
 
 
@@ -534,7 +556,8 @@ knn_wflow <-
 
 ## Fit models
 
-You may want to compare the time it takes to fit each model. `tic()` starts a simple timer and `toc()` stops it
+The models are then fit to the data using the defined workflows and cross-validation folds. Performance metrics are calculated for each model on each fold of the cross-validation. These metrics include recall, precision, F1 score, accuracy, Kappa, area under the ROC curve, sensitivity, and specificity. These metrics provide a comprehensive view of the models' performance. The computation time for each model fitting is also captured.
+
 
 ```{r, fit_models}
 #Logistic regression
@@ -636,6 +659,10 @@ knn_res %>% collect_metrics(summarize = TRUE)
 
 ## Compare models
 
+After fitting all the models, the results are collected and the models are compared based on their performance metrics and computation times. The model with the highest area under the ROC curve (AUC) and the lowest computation time is selected as the best model.
+
+
+
 ```{r, compare_models}
 ## Model Comparison
 
@@ -696,7 +723,9 @@ From the table above, we can tell that Boosted tree model has the highest ROC_AU
 
 ## Which metric to use
 
-This is a highly imbalanced data set, as roughly 99.5% of all transactions are ok, and it's only 0.5% of transactions that are fraudulent. A `naive` model, which classifies everything as ok and not-fraud, would have an accuracy of 99.5%, but what about the sensitivity, specificity, the AUC, etc?
+Given the high class imbalance in the dataset (only 0.5% fraudulent transactions), accuracy is not a reliable metric for model performance. Instead, metrics like AUC, recall (sensitivity), and precision are more informative.
+
+The best model is then fit to the entire training dataset and evaluated on the test set using the last_fit function.
 
 ## `last_fit()`
 
@@ -725,6 +754,10 @@ xgb_res %>% collect_metrics(summarize = FALSE) #for the training set
 
 ## Get variable importance using `vip` package
 
+To gain insights into the importance of different features in the prediction, variable importance is calculated for the best model using the vip package. A plot of the 10 most important variables is produced.
+
+
+
 ```{r}
 library(vip)
 
@@ -736,6 +769,8 @@ last_fit_xgb %>%
 ```
 
 ## Plot Final Confusion matrix and ROC curve
+
+Finally, a confusion matrix and a ROC curve are generated for the best model on the test data. The confusion matrix shows the number of true positives, true negatives, false positives, and false negatives, providing a clear picture of the model's performance. The ROC curve plots the true positive rate (sensitivity) against the false positive rate (1-specificity) at various threshold settings, illustrating the trade-off between sensitivity and specificity.
 
 ```{r}
 ## Final Confusion Matrix
