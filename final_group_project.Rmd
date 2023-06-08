@@ -568,7 +568,7 @@ tree_res <-
     control = control_resamples(save_pred = TRUE)
     ) 
 time <- toc()
-log_time <- time[[4]]
+tree_time <- time[[4]]
 
 tree_res %>%  collect_metrics(summarize = TRUE)
 ```
@@ -588,7 +588,7 @@ rf_res <-
     control = control_resamples(save_pred = TRUE)
     ) 
 time <- toc()
-log_time <- time[[4]]
+rf_time <- time[[4]]
 
 rf_res %>%  collect_metrics(summarize = TRUE)
 
@@ -609,7 +609,7 @@ xgb_res <-
     control = control_resamples(save_pred = TRUE)
     ) 
 time <- toc()
-log_time <- time[[4]]
+xgb_time <- time[[4]]
 
 xgb_res %>% collect_metrics(summarize = TRUE)
 ```
@@ -629,7 +629,7 @@ knn_res <-
     control = control_resamples(save_pred = TRUE)
     )
 time <- toc()
-log_time <- time[[4]]
+knn_time <- time[[4]]
 
 knn_res %>% collect_metrics(summarize = TRUE)
 ```
@@ -645,6 +645,30 @@ log_metrics <-
   # add the name of the model to every row
   mutate(model = "Logistic Regression",
          time = log_time)
+
+tree_metrics <- 
+  tree_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "Decision Tree",
+         time = tree_time)
+
+rf_metrics <- 
+  rf_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "Random Forest",
+         time = rf_time)
+
+xgb_metrics <- 
+  xgb_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "XGBoost",
+         time = xgb_time)
+
+knn_metrics <- 
+  knn_res %>% 
+  collect_metrics(summarise = TRUE) %>%
+  mutate(model = "Knn",
+         time = knn_time)
 
 # add mode models here
 
