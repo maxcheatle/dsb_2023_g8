@@ -143,6 +143,25 @@ We have plenty of geospatial data as lat/long pairs, so I want to convert city/s
 
 ```{r}
 
+#| label: convert-strings-to-factors
+
+card_fraud <- card_fraud %>% 
+  mutate(category = factor(category),
+         job = factor(job))
+
+# Visualize the distribution of the new time variables
+ggplot(card_fraud, aes(x = hour)) +
+  geom_histogram(binwidth = 1) +
+  theme_minimal() +
+  labs(title = "Distribution of transaction hour")
+
+# Visualize the distribution of the distance
+ggplot(card_fraud, aes(x = distance_km)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Distribution of transaction distance (km)")
+
+
 ```
 
 ## Exploring factors: how is the compactness of categories?
@@ -160,12 +179,12 @@ card_fraud %>%
   coord_flip() +
   labs(title = "Category distribution", x = "Category", y = "Percentage")
 
-card_fraud %>% 
+jobs <- card_fraud %>% 
   count(job, sort=TRUE) %>% 
   mutate(perc = n/sum(n))
 
 # Now let's have a look at the job distribution
-# card_fraud %>% # This one didn't work too well, so we're removing it from our final doc
+card_fraud %>% # This one didn't work too well, so we're removing it from our final doc
   count(job, sort=TRUE) %>% 
   mutate(perc = n/sum(n)) %>% 
   ggplot(aes(x = reorder(job, perc), y = perc)) +
@@ -183,20 +202,15 @@ card_fraud %>%
   coord_flip() +
   labs(title = "Job distribution (Top 20)", x = "Job", y = "Percentage")
 
+
+
+
 ```
 
 The predictors `category` and `job` are transformed into factors.
 
-```{r}
-#| label: convert-strings-to-factors
-
-card_fraud <- card_fraud %>% 
-  mutate(category = factor(category),
-         job = factor(job))
-
-```
-
 `category` has 14 unique values, and `job` has 494 unique values. The dataset is quite large, with over 670K records, so these variables don't have an excessive number of levels at first glance. However, it is worth seeing if we can compact the levels to a smaller number.
+
 
 ### Why do we care about the number of categories and whether they are "excessive"?
 
@@ -204,9 +218,50 @@ Consider the extreme case where a dataset had categories that only contained one
 
 If I had subject matter expertise, I could manually combine categories. If you don't have subject matter expertise, or if performing this task would be too labor intensive, then you can use cutoffs based on the amount of data in a category. If the majority of the data exists in only a few categories, then it might be reasonable to keep those categories and lump everything else in an "other" category or perhaps even drop the data points in smaller categories.
 
+```{r}
+#Although we attempted to categorise the jobs into different industries, this requires far too much manual labour and also we do not possess enough subject matter expertise to categorise them ourselves.
+
+#Therefore, we are going to simply simplify the jobs category but only including the top 50 jobs, rather than the current over 400 jobs.
+
+# Determine the top 10 most frequent jobs
+top_jobs <- names(sort(table(card_fraud$job), decreasing = TRUE))[1:50]
+
+# Create a new 'job_category' column
+card_fraud$job_category <- ifelse(card_fraud$job %in% top_jobs, as.character(card_fraud$job), 'Other')
+
+table(card_fraud$job_category)
+
+
+
+
+
+```
+
+
 ## Do all variables have sensible types?
 
 Consider each variable and decide whether to keep, transform, or drop it. This is a mixture of Exploratory Data Analysis and Feature Engineering, but it's helpful to do some simple feature engineering as you explore the data. In this project, we have all data to begin with, so any transformations will be performed on the entire dataset. Ideally, do the transformations as a `recipe_step()` in the tidymodels framework. Then the transformations would be applied to any data the recipe was used on as part of the modeling workflow. There is less chance of data leakage or missing a step when you perform the feature engineering in the recipe.
+
+```{r}
+
+# create a new variable for age and drop dob
+card_fraud <- card_fraud %>%
+  mutate(age = as.integer(year(Sys.Date()) - year(dob))) %>%
+  select(-dob)
+
+# convert city and state to factor
+card_fraud$city <- as.factor(card_fraud$city)
+card_fraud$state <- as.factor(card_fraud$state)
+
+# keep distance in km only
+card_fraud <- select(card_fraud, -distance_miles)
+
+# drop redundant lat and long variables
+card_fraud <- select(card_fraud, -c(lat1_radians, lat2_radians, long1_radians, long2_radians))
+
+
+```
+
 
 ## Which variables to keep in your model?
 
