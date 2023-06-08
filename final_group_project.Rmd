@@ -143,7 +143,23 @@ We have plenty of geospatial data as lat/long pairs, so I want to convert city/s
 
 ```{r}
 
+#| label: convert-strings-to-factors
 
+card_fraud <- card_fraud %>% 
+  mutate(category = factor(category),
+         job = factor(job))
+
+# Visualize the distribution of the new time variables
+ggplot(card_fraud, aes(x = hour)) +
+  geom_histogram(binwidth = 1) +
+  theme_minimal() +
+  labs(title = "Distribution of transaction hour")
+
+# Visualize the distribution of the distance
+ggplot(card_fraud, aes(x = distance_km)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Distribution of transaction distance (km)")
 
 
 ```
@@ -163,12 +179,12 @@ card_fraud %>%
   coord_flip() +
   labs(title = "Category distribution", x = "Category", y = "Percentage")
 
-card_fraud %>% 
+jobs <- card_fraud %>% 
   count(job, sort=TRUE) %>% 
   mutate(perc = n/sum(n))
 
 # Now let's have a look at the job distribution
-# card_fraud %>% # This one didn't work too well, so we're removing it from our final doc
+card_fraud %>% # This one didn't work too well, so we're removing it from our final doc
   count(job, sort=TRUE) %>% 
   mutate(perc = n/sum(n)) %>% 
   ggplot(aes(x = reorder(job, perc), y = perc)) +
@@ -189,15 +205,6 @@ card_fraud %>%
 ```
 
 The predictors `category` and `job` are transformed into factors.
-
-```{r}
-#| label: convert-strings-to-factors
-
-card_fraud <- card_fraud %>% 
-  mutate(category = factor(category),
-         job = factor(job))
-
-```
 
 `category` has 14 unique values, and `job` has 494 unique values. The dataset is quite large, with over 670K records, so these variables don't have an excessive number of levels at first glance. However, it is worth seeing if we can compact the levels to a smaller number.
 
