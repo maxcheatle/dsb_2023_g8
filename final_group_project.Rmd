@@ -266,7 +266,7 @@ jobs <- card_fraud %>%
   mutate(perc = n/sum(n))
 
 # Now let's have a look at the job distribution
-card_fraud %>% # This one didn't work too well, so we're removing it from our final doc
+# card_fraud %>% # This one didn't work too well, so we're removing it from our final doc
   count(job, sort=TRUE) %>% 
   mutate(perc = n/sum(n)) %>% 
   ggplot(aes(x = reorder(job, perc), y = perc)) +
@@ -283,9 +283,6 @@ card_fraud %>%
   geom_bar(stat = "identity") +
   coord_flip() +
   labs(title = "Job distribution (Top 20)", x = "Job", y = "Percentage")
-
-
-
 
 ```
 
