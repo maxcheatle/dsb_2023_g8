@@ -143,9 +143,6 @@ We have plenty of geospatial data as lat/long pairs, so I want to convert city/s
 
 ```{r}
 
-
-
-
 ```
 
 ## Exploring factors: how is the compactness of categories?
