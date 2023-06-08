@@ -778,7 +778,7 @@ cost <- cost %>%
   
 
   # naive false-- we think every single transaction is ok and not fraud
-
+  
 
   # false negatives-- we thought they were not fraud, but they were
 
