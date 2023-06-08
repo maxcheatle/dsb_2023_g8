@@ -14,6 +14,8 @@ output:
     toc: yes
 ---
 
+### Git Repo: [Link to repo](https://github.com/maxcheatle/dsb_2023_g8)
+
 ```{r}
 #| label: load-libraries
 #| echo: false # This option disables the printing of code (only output is displayed).
@@ -33,15 +35,13 @@ library(ggthemes)
 
 # The problem: predicting credit card fraud
 
-This project's primary goal is to predict fraudulent credit card transactions. The dataset comprises credit card transactions, both legitimate and fraudulent. Given the extremely low proportion of fraudulent transactions, a naive model that predicts all transactions as legitimate would achieve over 99% accuracy. However, such a model would fail to capture the critical nuances necessary for predicting fraudulent activities. 
+This project's primary goal is to predict fraudulent credit card transactions. The dataset comprises credit card transactions, both legitimate and fraudulent. Given the extremely low proportion of fraudulent transactions, a naive model that predicts all transactions as legitimate would achieve over 99% accuracy. However, such a model would fail to capture the critical nuances necessary for predicting fraudulent activities.
 
 The dataset we will use consists of credit card transactions and it includes information about each transaction including customer details, the merchant and category of purchase, and whether or not the transaction was a fraud.
 
 ## Obtain the data
 
 This code begins by loading the dataset, which cannot be hosted on standard platforms due to its size. Thus, it is made available through Dropbox. After loading the dataset, the outcome variable is_fraud is converted to a factor or categorical variable, and the level is set such that '1' (indicating fraud) is the first level. This is important in tidymodels as the first level is considered the event of interest.
-
-
 
 ```{r}
 #| echo: false
@@ -242,7 +242,6 @@ card_fraud %>%
 
 Finally, the data is transformed to be used in the model. The categorical variables category and job are transformed into factor variables to be used in the model.
 
-
 ```{r}
 
 card_fraud <- card_fraud %>% 
@@ -252,7 +251,6 @@ card_fraud <- card_fraud %>%
 ```
 
 In summary, this script takes a comprehensive approach to preparing and analyzing the dataset for modeling credit card fraud. The methods used should provide an effective foundation for creating a predictive model. The model's success will heavily depend on the feature selection based on the insights drawn from the EDA process.
-
 
 ## Exploring factors: how is the compactness of categories?
 
@@ -296,8 +294,6 @@ card_fraud %>%
 
 ```
 
-
-
 ### Why do we care about the number of categories and whether they are "excessive"?
 
 In the first plot, we count the frequency of each category, sort them, and calculate the percentage of each category. The bar plot visualizes these percentages, which can help us understand the distribution and relative significance of each category.
@@ -329,7 +325,6 @@ The code above simplifies the job category by only retaining the top 50 jobs, re
 
 The next code chunk focuses on ensuring that all variables have appropriate data types and formats.
 
-
 ```{r}
 
 # create a new variable for age and drop dob
@@ -357,7 +352,6 @@ The distance_miles column is dropped in favor of distance_km to avoid redundancy
 ## Which variables to keep in your model?
 
 When creating predictive models, it's critical to choose relevant variables.
-
 
 ```{r}
 
@@ -387,8 +381,6 @@ my_card_fraud <- card_fraud_ml %>%
 
 Next, the data is divided into training and testing sets, with 80% of the data assigned to the training set and the remaining 20% to the test set. This approach is standard in machine learning, as it allows us to train the models on a large portion of the data and evaluate their performance on unseen data (the test set).
 
-
-
 ```{r}
 # **Split the data**
 
@@ -406,7 +398,6 @@ card_fraud_test <- testing(data_split)
 
 A three-fold cross-validation strategy is employed for model selection. In this process, the training set is divided into three parts or "folds". The model is trained on two of these folds and tested on the third. This process is repeated three times, with each fold serving as the test set once. This strategy gives a more reliable estimate of the model's performance.
 
-
 ```{r}
 set.seed(123)
 cv_folds <- vfold_cv(data = card_fraud_train, 
@@ -419,10 +410,7 @@ cv_folds
 
 Following this, a tidymodels recipe is defined for preprocessing the data. This recipe contains the steps necessary to prepare the data for machine learning. These steps include:
 
-Replacing new levels in nominal variables with the most frequent level (step_novel).
-Converting all nominal (categorical) variables to binary dummy variables (step_dummy). This is necessary because many machine learning algorithms cannot handle categorical data directly.
-Removing variables that have zero variance, i.e., the ones that have the same value in every observation (step_zv).
-Normalizing all numeric variables to have mean zero and standard deviation one (step_normalize). This is done to ensure that all features have the same scale.
+Replacing new levels in nominal variables with the most frequent level (step_novel). Converting all nominal (categorical) variables to binary dummy variables (step_dummy). This is necessary because many machine learning algorithms cannot handle categorical data directly. Removing variables that have zero variance, i.e., the ones that have the same value in every observation (step_zv). Normalizing all numeric variables to have mean zero and standard deviation one (step_normalize). This is done to ensure that all features have the same scale.
 
 ```{r, define_recipe}
 
@@ -452,7 +440,6 @@ glimpse(prepped_data)
 ## Define various models
 
 Next, five different machine learning models are defined. These models include a logistic regression model, a decision tree, a random forest, a boosted tree using Extreme Gradient Boosting, and a k-nearest neighbors model. These models are chosen because they represent a diverse set of approaches and are widely used for classification tasks.
-
 
 1.  Logistic regression, using the `glm` engine
 2.  Decision tree, using the `C5.0` engine
@@ -512,8 +499,6 @@ knn_spec <-
 
 Following the model definitions, each model is incorporated into a workflow along with the defined recipe. A workflow in tidymodels is a convenient way to bundle together preprocessing steps (recipe) and a model.
 
-
-
 ```{r, define_workflows}
 
 
@@ -557,7 +542,6 @@ knn_wflow <-
 ## Fit models
 
 The models are then fit to the data using the defined workflows and cross-validation folds. Performance metrics are calculated for each model on each fold of the cross-validation. These metrics include recall, precision, F1 score, accuracy, Kappa, area under the ROC curve, sensitivity, and specificity. These metrics provide a comprehensive view of the models' performance. The computation time for each model fitting is also captured.
-
 
 ```{r, fit_models}
 #Logistic regression
@@ -661,8 +645,6 @@ knn_res %>% collect_metrics(summarize = TRUE)
 
 After fitting all the models, the results are collected and the models are compared based on their performance metrics and computation times. The model with the highest area under the ROC curve (AUC) and the lowest computation time is selected as the best model.
 
-
-
 ```{r, compare_models}
 ## Model Comparison
 
@@ -756,8 +738,6 @@ xgb_res %>% collect_metrics(summarize = FALSE) #for the training set
 
 To gain insights into the importance of different features in the prediction, variable importance is calculated for the best model using the vip package. A plot of the 10 most important variables is produced.
 
-
-
 ```{r}
 library(vip)
 
@@ -845,14 +825,6 @@ cost_summary
 
 ```
 
-In the naive scenario, where every transaction is assumed to be non-fraudulent, the cost of undetected fraud is about 2,075,089 US$. However, with the use of the model, the cost of fraud decreases substantially. The model is able to correctly identify fraudulent transactions worth about 1,600,460 US$, reducing the cost of false negatives to 474,629.3 US$. Although the model mistakenly flags some legitimate transactions as fraudulent (false positives), the associated cost is much lower (146,807.1 US$).
+In the naive scenario, where every transaction is assumed to be non-fraudulent, the cost of undetected fraud is about 2,075,089 USD. However, with the use of the model, the cost of fraud decreases substantially. The model is able to correctly identify fraudulent transactions worth about 1,600,460 USD, reducing the cost of false negatives to 474,629.3 USD. Although the model mistakenly flags some legitimate transactions as fraudulent (false positives), the associated cost is much lower (146,807.1 USD).
 
 In conclusion, implementing the machine learning model for fraud detection can result in substantial financial savings for the company by reducing the cost of undetected fraudulent transactions.
-
--   If we use a naive classifier thinking that all transactions are legitimate and not fraudulent, the cost to the company is `r scales::dollar(cost_summary$false_naives)`.
-
--   With our best model, the total cost of false negatives, namely transactions our classifier thinks are legitimate but which turned out to be fraud, is `r scales::dollar(cost_summary$false_negatives)`.
-
--   Our classifier also has some false positives, `r scales::dollar(cost_summary$false_positives)`, namely flagging transactions as fraudulent, but which were legitimate. Assuming the card company makes around 2% for each transaction (source: <https://startups.co.uk/payment-processing/credit-card-processing-fees/>), the amount of money lost due to these false positives is `r scales::dollar(cost_summary$false_positives * 0.02)`
-
--   The \$ improvement over the naive policy is `r scales::dollar(cost_summary$false_naives - cost_summary$false_negatives - cost_summary$false_positives * 0.02)`.
