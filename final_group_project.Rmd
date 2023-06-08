@@ -202,11 +202,96 @@ card_fraud %>%
   coord_flip() +
   labs(title = "Job distribution (Top 20)", x = "Job", y = "Percentage")
 
+
+
+
 ```
 
 The predictors `category` and `job` are transformed into factors.
 
 `category` has 14 unique values, and `job` has 494 unique values. The dataset is quite large, with over 670K records, so these variables don't have an excessive number of levels at first glance. However, it is worth seeing if we can compact the levels to a smaller number.
+
+```{r}
+# Let us try to compact the job column into a more general industry column.
+
+# Create categories
+education <- c("Higher education careers adviser", "Academic librarian", "Primary school teacher", "Education administrator", "Associate Professor", "Teacher, adult education", "Education officer, community", "English as a foreign language teacher", "Professor Emeritus")
+medical <- c("Physiological scientist", "Medical technical officer", "Nurse, mental health", "Pathologist", "Hospital pharmacist", "Oncologist", "Clinical cytogeneticist", "Occupational therapist")
+engineering <- c("Engineer, building services", "Engineer, aeronautical", "Engineer, broadcasting (operations)", "Manufacturing systems engineer", "Engineer, manufacturing", "Engineer, civil (consulting)", "Engineer, materials", "Engineer, structural", "Broadcast engineer", "Engineer, site")
+management <- c("Quarry manager", "Company secretary", "Retail manager", "Product manager", "Hotel manager", "Restaurant manager, fast food", "Warehouse manager", "Purchasing manager")
+arts <- c("Media planner", "Jewellery designer", "Presenter, broadcasting", "Art gallery manager", "Designer, television/film set", "Artist", "Writer", "Dancer", "Designer, multimedia", "Production assistant, television", "Television camera operator", "Producer, television/film/video")
+retail <- c("Merchandiser, retail", "Visual merchandiser", "Buyer, retail")
+legal <- c("Chartered legal executive (England and Wales)", "Lawyer", "Solicitor, Scotland", "Legal secretary", "Solicitor")
+scientific_research <- c("Research scientist (medical)", "Scientist, research (medical)", "Biochemist, clinical", "Ecologist", "Economist", "Data scientist", "Nature conservation officer", "Scientist, clinical (histocompatibility and immunogenetics)", "Chemist, analytical", "Geneticist, molecular", "Hydrographic surveyor", "Analytical chemist", "Water quality scientist", "Hydrogeologist")
+administration <- c("Records manager", "Public librarian", "Administrator, arts", "Civil Service administrator", "Chief of Staff", "Civil Service fast streamer", "Personnel officer", "Information officer")
+military <- c("Armed forces logistics/support/administrative officer", "Armed forces technical officer")
+agriculture <- c("Conservation officer, historic buildings", "Forest/woodland manager")
+construction <- c("Architectural technologist")
+hospitality <- c("Catering manager")
+finance <- c("Insurance claims handler", "Accountant, chartered certified", "Investment banker, operational", "Accountant, chartered")
+journalism <- c("Magazine journalist", "Broadcast journalist", "Copy")
+aviation <- c("Air broker", "Ambulance person", "Air cabin crew", "Air traffic controller")
+sales <- c("Sales promotion account executive")
+maritime <- c("Ship broker")
+it_consulting <- c("IT consultant", "Programmer, applications")
+environmental <- c("Environmental education officer", "Environmental manager")
+public_relations <- c("Public relations officer")
+real_estate <- c("Estate manager/land agent")
+psychology <- c("Clinical psychologist")
+charity <- c("Charity officer")
+horticulture <- c("Horticultural consultant")
+textiles <- c("Designer, textile", "Textile designer")
+pharmaceutical <- c("Pharmacist, hospital")
+govt_officer <- c("Local government officer")
+community <- c("Community development worker")
+sports <- c("Sports administrator")
+museum <- c("Museum education officer", "Conservator, museum/gallery", "Conservator, furniture")
+telecom <- c("Broadcast engineer")
+animal_care <- c("Veterinary surgeon")
+alternative_medicine <- c("Homeopath")
+
+# Assign industry based on the job
+card_fraud$industry <- NA # initializing a new column with NA
+card_fraud$industry[card_fraud$job %in% education] <- 'Education'
+card_fraud$industry[card_fraud$job %in% medical] <- 'Medical/Healthcare'
+card_fraud$industry[card_fraud$job %in% engineering] <- 'Engineering'
+card_fraud$industry[card_fraud$job %in% management] <- 'Management'
+card_fraud$industry[card_fraud$job %in% arts] <- 'Arts/Creative'
+card_fraud$industry[card_fraud$job %in% retail] <- 'Retail'
+card_fraud$industry[card_fraud$job %in% legal] <- 'Legal'
+card_fraud$industry[card_fraud$job %in% scientific_research] <- 'Scientific Research'
+card_fraud$industry[card_fraud$job %in% administration] <- 'Administration'
+card_fraud$industry[card_fraud$job %in% military] <- 'Military'
+card_fraud$industry[card_fraud$job %in% agriculture] <- 'Agriculture'
+card_fraud$industry[card_fraud$job %in% construction] <- 'Construction'
+card_fraud$industry[card_fraud$job %in% hospitality] <- 'Hospitality'
+card_fraud$industry[card_fraud$job %in% finance] <- 'Finance'
+card_fraud$industry[card_fraud$job %in% journalism] <- 'Journalism'
+card_fraud$industry[card_fraud$job %in% aviation] <- 'Aviation'
+card_fraud$industry[card_fraud$job %in% sales] <- 'Sales'
+card_fraud$industry[card_fraud$job %in% maritime] <- 'Maritime'
+card_fraud$industry[card_fraud$job %in% it_consulting] <- 'IT Consulting'
+card_fraud$industry[card_fraud$job %in% environmental] <- 'Environmental'
+card_fraud$industry[card_fraud$job %in% public_relations] <- 'Public relations officer'
+card_fraud$industry[card_fraud$job %in% real_estate] <- 'Real Estate'
+card_fraud$industry[card_fraud$job %in% psychology] <- 'Psychology'
+card_fraud$industry[card_fraud$job %in% charity] <- 'Charity'
+card_fraud$industry[card_fraud$job %in% horticulture] <- 'Horticulture'
+card_fraud$industry[card_fraud$job %in% textiles] <- 'Textiles'
+card_fraud$industry[card_fraud$job %in% pharmaceutical] <- 'Pharmaceutical'
+card_fraud$industry[card_fraud$job %in% govt_officer] <- 'Government Officer'
+card_fraud$industry[card_fraud$job %in% community] <- 'Community Development'
+card_fraud$industry[card_fraud$job %in% sports] <- 'Sports'
+card_fraud$industry[card_fraud$job %in% museum] <- 'Museum'
+card_fraud$industry[card_fraud$job %in% telecom] <- 'Telecommunications'
+card_fraud$industry[card_fraud$job %in% animal_care] <- 'Animal Care'
+card_fraud$industry[card_fraud$job %in% alternative_medicine] <- 'Alternative Medicine'
+
+
+
+glimpse(card_fraud)
+
+```
 
 ### Why do we care about the number of categories and whether they are "excessive"?
 
@@ -214,9 +299,50 @@ Consider the extreme case where a dataset had categories that only contained one
 
 If I had subject matter expertise, I could manually combine categories. If you don't have subject matter expertise, or if performing this task would be too labor intensive, then you can use cutoffs based on the amount of data in a category. If the majority of the data exists in only a few categories, then it might be reasonable to keep those categories and lump everything else in an "other" category or perhaps even drop the data points in smaller categories.
 
+```{r}
+#Although we attempted to categorise the jobs into different industries, this requires far too much manual labour and also we do not possess enough subject matter expertise to categorise them ourselves.
+
+#Therefore, we are going to simply simplify the jobs category but only including the top 50 jobs, rather than the current over 400 jobs.
+
+# Determine the top 10 most frequent jobs
+top_jobs <- names(sort(table(card_fraud$job), decreasing = TRUE))[1:50]
+
+# Create a new 'job_category' column
+card_fraud$job_category <- ifelse(card_fraud$job %in% top_jobs, as.character(card_fraud$job), 'Other')
+
+table(card_fraud$job_category)
+
+
+
+
+
+```
+
+
 ## Do all variables have sensible types?
 
 Consider each variable and decide whether to keep, transform, or drop it. This is a mixture of Exploratory Data Analysis and Feature Engineering, but it's helpful to do some simple feature engineering as you explore the data. In this project, we have all data to begin with, so any transformations will be performed on the entire dataset. Ideally, do the transformations as a `recipe_step()` in the tidymodels framework. Then the transformations would be applied to any data the recipe was used on as part of the modeling workflow. There is less chance of data leakage or missing a step when you perform the feature engineering in the recipe.
+
+```{r}
+
+# create a new variable for age and drop dob
+card_fraud <- card_fraud %>%
+  mutate(age = as.integer(year(Sys.Date()) - year(dob))) %>%
+  select(-dob)
+
+# convert city and state to factor
+card_fraud$city <- as.factor(card_fraud$city)
+card_fraud$state <- as.factor(card_fraud$state)
+
+# keep distance in km only
+card_fraud <- select(card_fraud, -distance_miles)
+
+# drop redundant lat and long variables
+card_fraud <- select(card_fraud, -c(lat1_radians, lat2_radians, long1_radians, long2_radians))
+
+
+```
+
 
 ## Which variables to keep in your model?
 
