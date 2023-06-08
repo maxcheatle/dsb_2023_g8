@@ -692,6 +692,8 @@ model_compare %>%
 
 ```
 
+From the table above, we can tell that Boosted tree model has the highest ROC_AUC and the lowest time to run. We then choose it as the best model to do the last_fit() on test dataset.
+
 ## Which metric to use
 
 This is a highly imbalanced data set, as roughly 99.5% of all transactions are ok, and it's only 0.5% of transactions that are fraudulent. A `naive` model, which classifies everything as ok and not-fraud, would have an accuracy of 99.5%, but what about the sensitivity, specificity, the AUC, etc?
@@ -702,16 +704,35 @@ This is a highly imbalanced data set, as roughly 99.5% of all transactions are o
 
 ## `last_fit()` on test set
 
+last_fit_xgb <- last_fit(xgb_wflow, 
+                        split = data_split,
+                        metrics = metric_set(
+                          accuracy, f_meas, kap, precision,
+                          recall, roc_auc, sens, spec))
+
+last_fit_xgb %>% collect_metrics(summarize = TRUE)
+
 # - `last_fit()`  fits a model to the whole training data and evaluates it on the test set. 
+
+xgb_res %>% collect_metrics(summarize = TRUE) #for the test set
+
+xgb_res %>% collect_metrics(summarize = FALSE) #for the training set
+
 # - provide the workflow object of the best model as well as the data split object (not the training data). 
- 
+
 
 ```
 
 ## Get variable importance using `vip` package
 
 ```{r}
+library(vip)
 
+last_fit_rf %>% 
+  pluck(".workflow", 1) %>%   
+  pull_workflow_fit() %>% 
+  vip(num_features = 10) +
+  theme_light()
 ```
 
 ## Plot Final Confusion matrix and ROC curve
