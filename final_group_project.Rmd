@@ -845,6 +845,10 @@ cost_summary
 
 ```
 
+In the naive scenario, where every transaction is assumed to be non-fraudulent, the cost of undetected fraud is about 2,075,089 US$. However, with the use of the model, the cost of fraud decreases substantially. The model is able to correctly identify fraudulent transactions worth about 1,600,460 US$, reducing the cost of false negatives to 474,629.3 US$. Although the model mistakenly flags some legitimate transactions as fraudulent (false positives), the associated cost is much lower (146,807.1 US$).
+
+In conclusion, implementing the machine learning model for fraud detection can result in substantial financial savings for the company by reducing the cost of undetected fraudulent transactions.
+
 -   If we use a naive classifier thinking that all transactions are legitimate and not fraudulent, the cost to the company is `r scales::dollar(cost_summary$false_naives)`.
 
 -   With our best model, the total cost of false negatives, namely transactions our classifier thinks are legitimate but which turned out to be fraud, is `r scales::dollar(cost_summary$false_negatives)`.
