@@ -1,6 +1,6 @@
 ---
 title: "Final Group project"
-author: "Your name goes here"
+author: "Max Cheatle, Edward Davies, Nianyu Li"
 date: "`r Sys.Date()`"
 output:
   html_document:
@@ -13,7 +13,6 @@ output:
   pdf_document:
     toc: yes
 ---
-
 
 ```{r}
 #| label: load-libraries
@@ -35,7 +34,7 @@ library(ranger)
 
 The goal of the project is to predict fraudulent credit card transactions.
 
-We will be using a dataset with credit card transactions containing legitimate and fraud transactions. Fraud is typically well below 1% of all transactions, so a naive model that predicts that all transactions are legitimate and not fraudulent would have an accuracy of well over 99%-- pretty good, no? 
+We will be using a dataset with credit card transactions containing legitimate and fraud transactions. Fraud is typically well below 1% of all transactions, so a naive model that predicts that all transactions are legitimate and not fraudulent would have an accuracy of well over 99%-- pretty good, no?
 
 You can read more on credit card fraud on [Credit Card Fraud Detection Using Weighted Support Vector Machine](https://www.scirp.org/journal/paperinformation.aspx?paperid=105944)
 
@@ -43,12 +42,12 @@ The dataset we will use consists of credit card transactions and it includes inf
 
 ## Obtain the data
 
-The dataset is too large to be hosted on Canvas or Github, so please download it from dropbox https://www.dropbox.com/sh/q1yk8mmnbbrzavl/AAAxzRtIhag9Nc_hODafGV2ka?dl=0 and save it in your `dsb` repo, under the `data` folder.
+The dataset is too large to be hosted on Canvas or Github, so please download it from dropbox <https://www.dropbox.com/sh/q1yk8mmnbbrzavl/AAAxzRtIhag9Nc_hODafGV2ka?dl=0> and save it in your `dsb` repo, under the `data` folder.
 
 As we will be building a classifier model using tidymodels, there's two things we need to do:
 
-1. Define the outcome variable `is_fraud` as a factor, or categorical, variable, instead of the numerical 0-1 varaibles.
-2. In tidymodels, the first level is the event of interest. If we leave our data as is, `0` is the first level, but we want to find out when we actually did (`1`) have a fraudulent transaction
+1.  Define the outcome variable `is_fraud` as a factor, or categorical, variable, instead of the numerical 0-1 varaibles.
+2.  In tidymodels, the first level is the event of interest. If we leave our data as is, `0` is the first level, but we want to find out when we actually did (`1`) have a fraudulent transaction
 
 ```{r}
 #| echo: false
@@ -116,10 +115,9 @@ card_fraud <- card_fraud %>%
 
 ```
 
-## Exploratory Data Analysis (EDA) 
+## Exploratory Data Analysis (EDA)
 
-You have done some EDA and you can pool together your group's expertise in which variables to use as features.
-You can reuse your EDA from earlier, but we expect at least a few visualisations and/or tables to explore teh dataset and identify any useful features.
+You have done some EDA and you can pool together your group's expertise in which variables to use as features. You can reuse your EDA from earlier, but we expect at least a few visualisations and/or tables to explore teh dataset and identify any useful features.
 
 Group all variables by type and examine each variable class by class. The dataset has the following types of variables:
 
@@ -131,19 +129,19 @@ Group all variables by type and examine each variable class by class. The datase
 
 Strings are usually not a useful format for classification problems. The strings should be converted to factors, dropped, or otherwise transformed.
 
-***Strings to Factors*** 
+***Strings to Factors***
 
 -   `category`, Category of Merchant
 -   `job`, Job of Credit Card Holder
 
-***Strings to Geospatial Data*** 
+***Strings to Geospatial Data***
 
-We have plenty of geospatial data as lat/long pairs, so I want to convert city/state to lat/long so I can compare to the other geospatial variables. This will also make it easier to compute new variables like the distance the transaction is from the home location. 
+We have plenty of geospatial data as lat/long pairs, so I want to convert city/state to lat/long so I can compare to the other geospatial variables. This will also make it easier to compute new variables like the distance the transaction is from the home location.
 
 -   `city`, City of Credit Card Holder
 -   `state`, State of Credit Card Holder
 
-##  Exploring factors: how is the compactness of categories?
+## Exploring factors: how is the compactness of categories?
 
 -   Do we have excessive number of categories? Do we want to combine some?
 
@@ -158,7 +156,6 @@ card_fraud %>%
 
 
 ```
-
 
 The predictors `category` and `job` are transformed into factors.
 
@@ -178,8 +175,7 @@ card_fraud <- card_fraud %>%
 
 Consider the extreme case where a dataset had categories that only contained one record each. There is simply insufficient data to make correct predictions using category as a predictor on new data with that category label. Additionally, if your modeling uses dummy variables, having an extremely large number of categories will lead to the production of a huge number of predictors, which can slow down the fitting. This is fine if all the predictors are useful, but if they aren't useful (as in the case of having only one record for a category), trimming them will improve the speed and quality of the data fitting.
 
-If I had subject matter expertise, I could manually combine categories. If you don't have subject matter expertise, or if performing this task would be too labor intensive, then you can use cutoffs based on the amount of data in a category. If the majority of the data exists in only a few categories, then it might be reasonable to keep those categories and lump everything else in an "other" category or perhaps even drop the data points in smaller categories. 
-
+If I had subject matter expertise, I could manually combine categories. If you don't have subject matter expertise, or if performing this task would be too labor intensive, then you can use cutoffs based on the amount of data in a category. If the majority of the data exists in only a few categories, then it might be reasonable to keep those categories and lump everything else in an "other" category or perhaps even drop the data points in smaller categories.
 
 ## Do all variables have sensible types?
 
@@ -187,8 +183,7 @@ Consider each variable and decide whether to keep, transform, or drop it. This i
 
 ## Which variables to keep in your model?
 
-You have a number of variables and you have to decide which ones to use in your model. For instance, you have the latitude/lognitude of the customer, that of the merchant, the same data in radians, as well as the `distance_km` and `distance_miles`. Do you need them all? 
-
+You have a number of variables and you have to decide which ones to use in your model. For instance, you have the latitude/lognitude of the customer, that of the merchant, the same data in radians, as well as the `distance_km` and `distance_miles`. Do you need them all?
 
 ## Fit your workflows in smaller sample
 
@@ -196,14 +191,12 @@ You will be running a series of different models, along the lines of the Califor
 
 Thus, we will work with a smaller sample of 10% of the values the original dataset to identify the best model, and once we have the best model we can use the full dataset to train- test our best model.
 
-
 ```{r}
 # select a smaller subset
 my_card_fraud <- card_fraud %>% 
   # select a smaller subset, 10% of the entire dataframe 
   slice_sample(prop = 0.10) 
 ```
-
 
 ## Split the data in training - testing
 
@@ -220,7 +213,6 @@ card_fraud_train <- training(data_split)
 card_fraud_test <- testing(data_split)
 ```
 
-
 ## Cross Validation
 
 Start with 3 CV folds to quickly get an estimate for the best model and you can increase the number of folds to 5 or 10 later.
@@ -232,7 +224,6 @@ cv_folds <- vfold_cv(data = card_fraud_train,
                           strata = is_fraud)
 cv_folds 
 ```
-
 
 ## Define a tidymodels `recipe`
 
@@ -248,7 +239,7 @@ fraud_rec <- recipe(is_fraud ~ ., data = card_fraud_train) %>%
 
 ```
 
-Once you have your recipe, you can check the pre-processed dataframe 
+Once you have your recipe, you can check the pre-processed dataframe
 
 ```{r}
 prepped_data <- 
@@ -260,16 +251,15 @@ glimpse(prepped_data)
 
 ```
 
-
 ## Define various models
 
 You should define the following classification models:
 
-1. Logistic regression, using the `glm` engine
-2. Decision tree, using the `C5.0` engine
-3. Random Forest, using  the `ranger` engine and setting `importance = "impurity"`)  
-4. A boosted tree using Extreme Gradient Boosting, and the `xgboost` engine
-5. A k-nearest neighbours,  using 4 nearest_neighbors and the `kknn` engine  
+1.  Logistic regression, using the `glm` engine
+2.  Decision tree, using the `C5.0` engine
+3.  Random Forest, using the `ranger` engine and setting `importance = "impurity"`)\
+4.  A boosted tree using Extreme Gradient Boosting, and the `xgboost` engine
+5.  A k-nearest neighbours, using 4 nearest_neighbors and the `kknn` engine
 
 ```{r, define_models}
 ## Model Building 
@@ -295,7 +285,6 @@ log_wflow <- # new workflow object
  add_model(log_spec)   # add your model spec
 
 ```
-
 
 ## Fit models
 
@@ -350,6 +339,7 @@ model_compare <- bind_rows(log_metrics,
 This is a highly imbalanced data set, as roughly 99.5% of all transactions are ok, and it's only 0.5% of transactions that are fraudulent. A `naive` model, which classifies everything as ok and not-fraud, would have an accuracy of 99.5%, but what about the sensitivity, specificity, the AUC, etc?
 
 ## `last_fit()`
+
 ```{r}
 
 ## `last_fit()` on test set
@@ -360,17 +350,13 @@ This is a highly imbalanced data set, as roughly 99.5% of all transactions are o
 
 ```
 
-
-
 ## Get variable importance using `vip` package
-
 
 ```{r}
 
 ```
 
 ## Plot Final Confusion matrix and ROC curve
-
 
 ```{r}
 ## Final Confusion Matrix
@@ -388,11 +374,9 @@ last_fit_xgb %>%
   autoplot()
 ```
 
+## Calculating the cost of fraud to the company
 
-##  Calculating the cost of fraud to the company
-
-
-- How much money (in US\$ terms) are fraudulent transactions costing the company? Generate a table that summarizes the total amount of legitimate and fraudulent transactions per year and calculate the % of fraudulent transactions, in US\$ terms. Compare your model vs the naive classification that we do not have any fraudulent transactions. 
+-   How much money (in US\$ terms) are fraudulent transactions costing the company? Generate a table that summarizes the total amount of legitimate and fraudulent transactions per year and calculate the % of fraudulent transactions, in US\$ terms. Compare your model vs the naive classification that we do not have any fraudulent transactions.
 
 ```{r}
 #| label: savings-for-cc-company
@@ -442,10 +426,10 @@ cost_summary
 
 ```
 
+-   If we use a naive classifier thinking that all transactions are legitimate and not fraudulent, the cost to the company is `r scales::dollar(cost_summary$false_naives)`.
 
-- If we use a naive classifier thinking that all transactions are legitimate and not fraudulent, the cost to the company is `r scales::dollar(cost_summary$false_naives)`.
-- With our best model, the total cost of false negatives, namely transactions our classifier thinks are legitimate but which turned out to be fraud, is `r scales::dollar(cost_summary$false_negatives)`.
+-   With our best model, the total cost of false negatives, namely transactions our classifier thinks are legitimate but which turned out to be fraud, is `r scales::dollar(cost_summary$false_negatives)`.
 
-- Our classifier also has some false positives, `r scales::dollar(cost_summary$false_positives)`, namely flagging transactions as fraudulent, but which were legitimate. Assuming the card company makes around 2% for each transaction (source: https://startups.co.uk/payment-processing/credit-card-processing-fees/), the amount of money lost due to these false positives is `r scales::dollar(cost_summary$false_positives * 0.02)`
+-   Our classifier also has some false positives, `r scales::dollar(cost_summary$false_positives)`, namely flagging transactions as fraudulent, but which were legitimate. Assuming the card company makes around 2% for each transaction (source: <https://startups.co.uk/payment-processing/credit-card-processing-fees/>), the amount of money lost due to these false positives is `r scales::dollar(cost_summary$false_positives * 0.02)`
 
-- The \$ improvement over the naive policy is `r scales::dollar(cost_summary$false_naives - cost_summary$false_negatives - cost_summary$false_positives * 0.02)`.
+-   The \$ improvement over the naive policy is `r scales::dollar(cost_summary$false_naives - cost_summary$false_negatives - cost_summary$false_positives * 0.02)`.
