@@ -117,7 +117,7 @@ card_fraud <- card_fraud %>%
 
 ## Exploratory Data Analysis (EDA)
 
-You have done some EDA and you can pool together your group's expertise in which variables to use as features. You can reuse your EDA from earlier, but we expect at least a few visualisations and/or tables to explore teh dataset and identify any useful features.
+You have done some EDA and you can pool together your group's expertise in which variables to use as features. You can reuse your EDA from earlier, but we expect at least a few visualisations and/or tables to explore the dataset and identify any useful features.
 
 Group all variables by type and examine each variable class by class. The dataset has the following types of variables:
 
@@ -141,19 +141,50 @@ We have plenty of geospatial data as lat/long pairs, so I want to convert city/s
 -   `city`, City of Credit Card Holder
 -   `state`, State of Credit Card Holder
 
+```{r}
+
+
+
+
+```
+
 ## Exploring factors: how is the compactness of categories?
 
 -   Do we have excessive number of categories? Do we want to combine some?
 
 ```{r}
+
+# Let's look at category compactness first
 card_fraud %>% 
-  count(category, sort=TRUE)%>% 
-  mutate(perc = n/sum(n))
+  count(category, sort = TRUE) %>%
+  mutate(perc = n/sum(n)) %>% 
+  ggplot(aes(x = reorder(category, perc), y = perc)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Category distribution", x = "Category", y = "Percentage")
 
 card_fraud %>% 
   count(job, sort=TRUE) %>% 
   mutate(perc = n/sum(n))
 
+# Now let's have a look at the job distribution
+# card_fraud %>% # This one didn't work too well, so we're removing it from our final doc
+  count(job, sort=TRUE) %>% 
+  mutate(perc = n/sum(n)) %>% 
+  ggplot(aes(x = reorder(job, perc), y = perc)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Job distribution", x = "Job", y = "Percentage")
+
+# Let's reduce to the top 10 to create a more readable visual
+card_fraud %>% 
+  count(job, sort=TRUE) %>% 
+  top_n(20) %>%
+  mutate(perc = n/sum(n)) %>% 
+  ggplot(aes(x = reorder(job, perc), y = perc)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Job distribution (Top 20)", x = "Job", y = "Percentage")
 
 ```
 
@@ -161,7 +192,6 @@ The predictors `category` and `job` are transformed into factors.
 
 ```{r}
 #| label: convert-strings-to-factors
-
 
 card_fraud <- card_fraud %>% 
   mutate(category = factor(category),
