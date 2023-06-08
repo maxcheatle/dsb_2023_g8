@@ -33,22 +33,19 @@ library(ggthemes)
 
 # The problem: predicting credit card fraud
 
-The goal of the project is to predict fraudulent credit card transactions.
-
-We will be using a dataset with credit card transactions containing legitimate and fraud transactions. Fraud is typically well below 1% of all transactions, so a naive model that predicts that all transactions are legitimate and not fraudulent would have an accuracy of well over 99%-- pretty good, no?
-
-You can read more on credit card fraud on [Credit Card Fraud Detection Using Weighted Support Vector Machine](https://www.scirp.org/journal/paperinformation.aspx?paperid=105944)
+This project's primary goal is to predict fraudulent credit card transactions. The dataset comprises credit card transactions, both legitimate and fraudulent. Given the extremely low proportion of fraudulent transactions, a naive model that predicts all transactions as legitimate would achieve over 99% accuracy. However, such a model would fail to capture the critical nuances necessary for predicting fraudulent activities. 
 
 The dataset we will use consists of credit card transactions and it includes information about each transaction including customer details, the merchant and category of purchase, and whether or not the transaction was a fraud.
 
 ## Obtain the data
-
-The dataset is too large to be hosted on Canvas or Github, so please download it from dropbox <https://www.dropbox.com/sh/q1yk8mmnbbrzavl/AAAxzRtIhag9Nc_hODafGV2ka?dl=0> and save it in your `dsb` repo, under the `data` folder.
-
 As we will be building a classifier model using tidymodels, there's two things we need to do:
 
 1.  Define the outcome variable `is_fraud` as a factor, or categorical, variable, instead of the numerical 0-1 varaibles.
 2.  In tidymodels, the first level is the event of interest. If we leave our data as is, `0` is the first level, but we want to find out when we actually did (`1`) have a fraudulent transaction
+
+This code begins by loading the dataset, which cannot be hosted on standard platforms due to its size. Thus, it is made available through Dropbox. After loading the dataset, the outcome variable is_fraud is converted to a factor or categorical variable, and the level is set such that '1' (indicating fraud) is the first level. This is important in tidymodels as the first level is considered the event of interest.
+
+
 
 ```{r}
 #| echo: false
@@ -89,6 +86,8 @@ The data dictionary is as follows
 
 We also add some of the variables we considered in our EDA for this dataset during homework 2.
 
+This section further refines the dataset. It adds variables such as hour, wday, month_name, and age based on trans_date_trans_time and dob. It also renames trans_year to year. Additionally, it converts latitude/longitude to radians and calculates the transaction's distance in miles and kilometers from the location of the purchase.
+
 ```{r}
 card_fraud <- card_fraud %>% 
   mutate( hour = hour(trans_date_trans_time),
@@ -118,17 +117,13 @@ card_fraud <- card_fraud %>%
 
 ## Exploratory Data Analysis (EDA)
 
-You have done some EDA and you can pool together your group's expertise in which variables to use as features. You can reuse your EDA from earlier, but we expect at least a few visualisations and/or tables to explore the dataset and identify any useful features.
+The EDA process is vital to understand the dataset and identify useful features. This phase includes both visual and tabular exploration of the dataset. The dataset comprises various types of variables such as strings, geospatial data, dates, date/times, and numerical data. These different types of data require unique processing and transformation.
 
-Group all variables by type and examine each variable class by class. The dataset has the following types of variables:
+For instance, strings are converted to factors or dropped, and geospatial data is calculated based on city/state data. The code uses various methods such as visualizing the distribution of transactions by month, day, and hour to analyze patterns of fraudulent transactions. The EDA process also investigates how fraud varies with the account holder's age and the transaction's distance from the cardholder's home.
 
-1.  Strings
-2.  Geospatial Data
-3.  Dates
-4.  Date/Times
-5.  Numerical
+By understanding these patterns and incorporating them into the model, it's more likely to accurately identify fraudulent transactions, making this EDA process vital to the model's success.
 
-Strings are usually not a useful format for classification problems. The strings should be converted to factors, dropped, or otherwise transformed.
+
 
 ***Strings to Factors***
 
@@ -251,6 +246,9 @@ card_fraud %>%
 
 -   Distance seemingly has almost no effect on fraudulent transactions, as the violin plot shows the distribution of transaction distances are nearly identical for the respective types of activity
 
+Finally, the data is transformed to be used in the model. The categorical variables category and job are transformed into factor variables to be used in the model.
+
+
 ```{r}
 
 card_fraud <- card_fraud %>% 
@@ -258,6 +256,9 @@ card_fraud <- card_fraud %>%
          job = factor(job))
 
 ```
+
+In summary, this script takes a comprehensive approach to preparing and analyzing the dataset for modeling credit card fraud. The methods used should provide an effective foundation for creating a predictive model. The model's success will heavily depend on the feature selection based on the insights drawn from the EDA process.
+
 
 ## Exploring factors: how is the compactness of categories?
 
