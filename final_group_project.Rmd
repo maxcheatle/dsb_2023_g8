@@ -684,6 +684,11 @@ model_compare <- bind_rows(log_metrics,
            as.double()
          )
 
+model_compare %>% 
+  janitor::clean_names() %>% 
+  filter(metric == "roc_auc") %>% 
+  arrange(-mean, -time)
+
 
 ```
 
