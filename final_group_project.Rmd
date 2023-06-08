@@ -352,6 +352,17 @@ card_fraud <- select(card_fraud, -c(lat1_radians, lat2_radians, long1_radians, l
 
 You have a number of variables and you have to decide which ones to use in your model. For instance, you have the latitude/lognitude of the customer, that of the merchant, the same data in radians, as well as the `distance_km` and `distance_miles`. Do you need them all?
 
+```{r}
+
+
+# Necessary columns
+necessary_columns <- c("amt", "city_pop", "distance_km", "category", "age", "hour", "wday", "month_name", "is_fraud")
+
+# Create new dataset
+card_fraud_ml <- card_fraud[, necessary_columns]
+
+```
+
 ## Fit your workflows in smaller sample
 
 You will be running a series of different models, along the lines of the California housing example we have seen in class. However, this dataset has 670K rows and if you try various models and run cross validation on them, your computer may slow down or crash.
@@ -360,7 +371,7 @@ Thus, we will work with a smaller sample of 10% of the values the original datas
 
 ```{r}
 # select a smaller subset
-my_card_fraud <- card_fraud %>% 
+my_card_fraud <- card_fraud_ml %>% 
   # select a smaller subset, 10% of the entire dataframe 
   slice_sample(prop = 0.10) 
 ```
@@ -399,7 +410,10 @@ What steps are you going to add to your recipe? Do you need to do any log transf
 ```{r, define_recipe}
 
 fraud_rec <- recipe(is_fraud ~ ., data = card_fraud_train) %>%
-
+  step_novel(all_nominal(), -all_outcomes()) %>% # Use before `step_dummy()` so new level is dummified
+  step_dummy(all_nominal(), -all_outcomes()) %>% # Convert categorical variables to dummy variables
+  step_zv(all_numeric(), -all_outcomes())  %>% 
+  step_normalize(all_numeric())
 
 
 
@@ -435,6 +449,44 @@ You should define the following classification models:
 # 2. set the `engine`
 # 3. Set the `mode`:  classification
 
+
+# Logistic regression
+log_spec <-  logistic_reg() %>%  # model type
+  set_engine(engine = "glm") %>%  # model engine
+  set_mode("classification") # model mode
+
+
+# Show your model specification
+log_spec
+
+# Decision Tree
+tree_spec <- decision_tree() %>%
+  set_engine(engine = "C5.0") %>%
+  set_mode("classification")
+
+tree_spec
+
+# Random Forest
+library(ranger)
+
+rf_spec <- 
+  rand_forest() %>% 
+  set_engine("ranger", importance = "impurity") %>% 
+  set_mode("classification")
+
+# Boosted tree (XGBoost)
+library(xgboost)
+
+xgb_spec <- 
+  boost_tree() %>% 
+  set_engine("xgboost") %>% 
+  set_mode("classification") 
+
+# K-nearest neighbour (k-NN)
+knn_spec <- 
+  nearest_neighbor(neighbors = 4) %>% # we can adjust the number of neighbors 
+  set_engine("kknn") %>% 
+  set_mode("classification")
 
 ```
 
