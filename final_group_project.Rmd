@@ -761,7 +761,7 @@ last_fit_xgb %>%
 #| label: savings-for-cc-company
 
 best_model_preds <- 
-  best_model_wflow %>% 
+  xgb_wflow %>% 
   fit(data = card_fraud_train) %>%  
   
   ## Use `augment()` to get predictions for entire data set
